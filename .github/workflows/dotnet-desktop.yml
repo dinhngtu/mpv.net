@@ -1,0 +1,59 @@
+name: .NET
+on:
+  push:
+    branches: [ "master" ]
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      Configuration: Release
+      Solution_Name: src/mpv.net.sln
+      Wap_Project_Directory: src/Package
+      Wap_Project_Path: src/Package/mpv.net.package.wapproj
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v1
+    - name: Download dependencies
+      run: |
+        function Get-MpvDependencies {
+          param(
+            [string]$Uri,
+            [string]$OutFile,
+            [string]$FileHash,
+            [string]$OutDir,
+            [string[]]$FileNames
+          )
+          Invoke-WebRequest -Uri $Uri -OutFile $OutFile
+          if ((Get-FileHash $OutFile -Algorithm SHA256 | select -expand Hash) -ine $FileHash) {
+            throw "Bad file hash"
+          }
+          7z x "$OutFile" "-o$OutDir" -aoa $FileNames
+        }
+        Get-MpvDependencies -Uri "https://github.com/mpvnet-player/mpv.net/releases/download/v6.0.3.2-beta/mpv.net-6.0.3.2-beta.zip" -OutFile "mpv.net-6.0.3.2-beta.zip" -FileHash 81975F82DE761320E06F11F59A6983348C64D110F89A8A1779BA8A4A80813176 -OutDir src/bin -FileNames mpvnet.com,Microsoft.Management.Infrastructure.dll
+        Get-MpvDependencies -Uri "https://mediaarea.net/download/binary/libmediainfo0/23.04/MediaInfo_DLL_23.04_Windows_x64_WithoutInstaller.7z" -OutFile "MediaInfo_DLL_23.04_Windows_x64_WithoutInstaller.7z" -FileHash C53BB7A7A23C861C02D00E1B1DF28B16C6C625D6C7050DB852167591B0DBBEFF -OutDir src/bin -FileNames MediaInfo.dll
+        Get-MpvDependencies -Uri "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20230614/mpv-dev-x86_64-v3-20230614-git-f1c9daa.7z" -OutFile "mpv-dev-x86_64-v3-20230614-git-f1c9daa.7z" -FileHash 07A0C03AB8B1CAABEEB6A2BC810BCE7E2849EE89AE16C0D3C8555C6EE0101566 -OutDir src/bin -FileNames libmpv-2.dll
+    - name: Restore the application
+      run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
+    - name: Decode the pfx
+      run: |
+        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.Base64_Encoded_Pfx }}")
+        $certificatePath = Join-Path -Path $env:Wap_Project_Directory -ChildPath GitHubActionsWorkflow.pfx
+        [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
+    - name: Create the app package
+      run: msbuild $env:Wap_Project_Path /p:Configuration=$env:Configuration /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:GenerateTemporaryStoreCertificate=False /p:AppxPackageSigningEnabled=True /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:PackageCertificatePassword=${{ secrets.Pfx_Key }}
+      env:
+        Appx_Bundle: Always
+        Appx_Bundle_Platforms: x64
+        Appx_Package_Build_Mode: StoreUpload
+        Configuration: ${{ matrix.configuration }}
+    - name: Remove the pfx
+      run: Remove-Item -path $env:Wap_Project_Directory\GitHubActionsWorkflow.pfx
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: MSIX Package
+        path: ${{ env.Wap_Project_Directory }}\AppPackages
