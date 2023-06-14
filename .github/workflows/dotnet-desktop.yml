@@ -8,8 +8,10 @@ jobs:
     env:
       Configuration: Release
       Solution_Name: src/mpv.net.sln
+      Wap_Project_Name: mpv_net_package
       Wap_Project_Directory: src/Package
       Wap_Project_Path: src/Package/mpv.net.package.wapproj
+      Pfx_Name: GitHubActionsWorkflow.pfx
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -41,17 +43,17 @@ jobs:
     - name: Decode the pfx
       run: |
         $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.Base64_Encoded_Pfx }}")
-        $certificatePath = Join-Path -Path $env:Wap_Project_Directory -ChildPath GitHubActionsWorkflow.pfx
+        $certificatePath = Join-Path -Path $env:Wap_Project_Directory -ChildPath $env:Pfx_Name
         [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
     - name: Create the app package
-      run: msbuild $env:Wap_Project_Path /p:Configuration=$env:Configuration /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:GenerateTemporaryStoreCertificate=False /p:AppxPackageSigningEnabled=True /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:PackageCertificatePassword=${{ secrets.Pfx_Key }}
+      run: msbuild $env:Solution_Name -target:${env:Wap_Project_Name}:Rebuild /p:Configuration=$env:Configuration /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:GenerateTemporaryStoreCertificate=False /p:AppxPackageSigningEnabled=True /p:PackageCertificateKeyFile=$env:Pfx_Name /p:PackageCertificatePassword=${{ secrets.Pfx_Key }}
       env:
         Appx_Bundle: Always
         Appx_Bundle_Platforms: x64
         Appx_Package_Build_Mode: StoreUpload
         Configuration: ${{ matrix.configuration }}
     - name: Remove the pfx
-      run: Remove-Item -path $env:Wap_Project_Directory\GitHubActionsWorkflow.pfx
+      run: Remove-Item -path $env:Wap_Project_Directory\$env:Pfx_Name
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
