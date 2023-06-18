@@ -47,10 +47,6 @@
       <Link>mpv.net\MediaInfo.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\bin\Microsoft.Management.Infrastructure.dll">
-      <Link>mpv.net\Microsoft.Management.Infrastructure.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="..\bin\libmpv-2.dll">
       <Link>mpv.net\libmpv-2.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
