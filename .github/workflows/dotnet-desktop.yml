@@ -35,9 +35,10 @@ jobs:
           }
           7z x "$OutFile" "-o$OutDir" -aoa $FileNames
         }
-        Get-MpvDependencies -Uri "https://github.com/mpvnet-player/mpv.net/releases/download/v6.0.3.2-beta/mpv.net-6.0.3.2-beta.zip" -OutFile "mpv.net-6.0.3.2-beta.zip" -FileHash 81975F82DE761320E06F11F59A6983348C64D110F89A8A1779BA8A4A80813176 -OutDir src/bin -FileNames mpvnet.com,Microsoft.Management.Infrastructure.dll
         Get-MpvDependencies -Uri "https://mediaarea.net/download/binary/libmediainfo0/23.04/MediaInfo_DLL_23.04_Windows_x64_WithoutInstaller.7z" -OutFile "MediaInfo_DLL_23.04_Windows_x64_WithoutInstaller.7z" -FileHash C53BB7A7A23C861C02D00E1B1DF28B16C6C625D6C7050DB852167591B0DBBEFF -OutDir src/bin -FileNames MediaInfo.dll
         Get-MpvDependencies -Uri "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20230614/mpv-dev-x86_64-v3-20230614-git-f1c9daa.7z" -OutFile "mpv-dev-x86_64-v3-20230614-git-f1c9daa.7z" -FileHash 07A0C03AB8B1CAABEEB6A2BC810BCE7E2849EE89AE16C0D3C8555C6EE0101566 -OutDir src/bin -FileNames libmpv-2.dll
+        Get-MpvDependencies -Uri "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20230614/mpv-x86_64-v3-20230614-git-f1c9daa.7z" -OutFile "mpv-x86_64-v3-20230614-git-f1c9daa.7z" -FileHash 40471F94C11CFB042CFDC86EC468525CAE53B7831AD8A4ABA85D25C3F1F3923A -OutDir src/bin -FileNames mpv.com
+        Rename-Item -Path .\src\bin\mpv.com -NewName mpvnet.com
     - name: Restore the application
       run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
     - name: Decode the pfx
