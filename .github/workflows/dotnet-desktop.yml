@@ -35,9 +35,9 @@ jobs:
           }
           7z x "$OutFile" "-o$OutDir" -aoa $FileNames
         }
-        Get-MpvDependencies -Uri "https://mediaarea.net/download/binary/libmediainfo0/23.04/MediaInfo_DLL_23.04_Windows_x64_WithoutInstaller.7z" -OutFile "MediaInfo_DLL_23.04_Windows_x64_WithoutInstaller.7z" -FileHash C53BB7A7A23C861C02D00E1B1DF28B16C6C625D6C7050DB852167591B0DBBEFF -OutDir src/bin -FileNames MediaInfo.dll
-        Get-MpvDependencies -Uri "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20230614/mpv-dev-x86_64-v3-20230614-git-f1c9daa.7z" -OutFile "mpv-dev-x86_64-v3-20230614-git-f1c9daa.7z" -FileHash 07A0C03AB8B1CAABEEB6A2BC810BCE7E2849EE89AE16C0D3C8555C6EE0101566 -OutDir src/bin -FileNames libmpv-2.dll
-        Get-MpvDependencies -Uri "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20230614/mpv-x86_64-v3-20230614-git-f1c9daa.7z" -OutFile "mpv-x86_64-v3-20230614-git-f1c9daa.7z" -FileHash 40471F94C11CFB042CFDC86EC468525CAE53B7831AD8A4ABA85D25C3F1F3923A -OutDir src/bin -FileNames mpv.com
+        Get-MpvDependencies -Uri "https://mediaarea.net/download/binary/libmediainfo0/23.06/MediaInfo_DLL_23.06_Windows_x64_WithoutInstaller.7z" -OutFile "MediaInfo_DLL_23.04_Windows_x64_WithoutInstaller.7z" -FileHash 95626DC8A9360EB76A6249D4768A3DCCF0E3A197B87CF8CACE32D43427D05F66 -OutDir src/bin -FileNames MediaInfo.dll
+        Get-MpvDependencies -Uri "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20230701/mpv-dev-x86_64-v3-20230701-git-0bfafd2.7z" -OutFile "mpv-dev-x86_64-v3-20230614-git-f1c9daa.7z" -FileHash 98734EBB2E227D74F02448D39BB3614226930302ED1685C46678578A77500BED -OutDir src/bin -FileNames libmpv-2.dll
+        Get-MpvDependencies -Uri "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20230701/mpv-x86_64-v3-20230701-git-0bfafd2.7z" -OutFile "mpv-x86_64-v3-20230614-git-f1c9daa.7z" -FileHash 194A9793B55D66962DBCEB5FF991B8696CEDBB67355A822D6314057709786D43 -OutDir src/bin -FileNames mpv.com
         Rename-Item -Path .\src\bin\mpv.com -NewName mpvnet.com
     - name: Restore the application
       run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
