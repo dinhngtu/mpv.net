@@ -35,10 +35,10 @@ jobs:
           }
           7z x "$OutFile" "-o$OutDir" -aoa $FileNames
         }
-        Get-MpvDependencies -Uri "https://mediaarea.net/download/binary/libmediainfo0/23.07/MediaInfo_DLL_23.07_Windows_x64_WithoutInstaller.7z" -OutFile "MediaInfo.7z" -FileHash 3AC8F211D682C1B41ECD1AED6B5A3B0377843920D78050524A75C16BD3B09E66 -OutDir src/bin -FileNames MediaInfo.dll
-        Get-MpvDependencies -Uri "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20230801/mpv-dev-x86_64-v3-20230801-git-3b19866.7z" -OutFile "mpv-dev-x86_64-v3.7z" -FileHash A19FF03737910EE78576E8AD7E20606FF362D5D829EA4734AB49B3A8F9F4386B -OutDir src/bin -FileNames libmpv-2.dll
-        Get-MpvDependencies -Uri "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20230801/mpv-x86_64-v3-20230801-git-3b19866.7z" -OutFile "mpv-x86_64-v3.7z" -FileHash F773A29E37FE0CABC386E841D917DF382424A0F75147234D037BB2722C47FAC9 -OutDir src/bin -FileNames mpv.com
-        Rename-Item -Path .\src\bin\mpv.com -NewName mpvnet.com
+        Get-MpvDependencies -Uri "https://mediaarea.net/download/binary/libmediainfo0/23.11/MediaInfo_DLL_23.11_Windows_x64_WithoutInstaller.7z" -OutFile "MediaInfo.7z" -FileHash AB3BFC67E6DFA98BEF08FD0A25EA50406C4C20D88CBA4DEB6ADB0DCA165101BD -OutDir src/MpvNet.Windows/bin -FileNames MediaInfo.dll
+        Get-MpvDependencies -Uri "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20231201/mpv-dev-x86_64-v3-20231201-git-67aa568.7z" -OutFile "mpv-dev-x86_64-v3.7z" -FileHash 4161AB03FF1A42F63FAF6E9D329F5789C6B3093123A656CD9AA2332A6586649A -OutDir src/MpvNet.Windows/bin -FileNames libmpv-2.dll
+        Get-MpvDependencies -Uri "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20231201/mpv-x86_64-v3-20231201-git-67aa568.7z" -OutFile "mpv-x86_64-v3.7z" -FileHash B144D4CEFF6020F7FDCE6D2E29FD69F8DA3CCC42411D00C390021820FCCB6353 -OutDir src/MpvNet.Windows/bin -FileNames mpv.com
+        Rename-Item -Path ./src/MpvNet.Windows/bin/mpv.com -NewName mpvnet.com
     - name: Restore the application
       run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
     - name: Decode the pfx
