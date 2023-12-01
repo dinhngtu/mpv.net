@@ -7,7 +7,7 @@ jobs:
     runs-on: windows-latest
     env:
       Configuration: Release
-      Solution_Name: src/mpv.net.sln
+      Solution_Name: src/MpvNet.sln
       Wap_Project_Name: mpv_net_package
       Wap_Project_Directory: src/Package
       Wap_Project_Path: src/Package/mpv.net.package.wapproj
