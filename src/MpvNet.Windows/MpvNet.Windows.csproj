@@ -22,9 +22,10 @@
     <Content Include="mpv-icon.ico" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\MpvNet\MpvNet.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\MpvNet\MpvNet.csproj" />
+      <ProjectReference Include="..\NGettext.Wpf\NGettext.Wpf.csproj" />
+    </ItemGroup>
 
   <ItemGroup>
     <Page Update="WPF\Views\AboutWindow.xaml">
@@ -34,10 +35,10 @@
     </Page>
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
-    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
-  </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+      <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
+    </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Misc\" />

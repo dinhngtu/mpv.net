@@ -31,15 +31,12 @@ Table of contents
 About
 -----
 
-mpv.net is a modern desktop media player for Windows based on the popular mpv player.
+mpv.net is a media player for Windows that has a modern GUI.
 
-mpv.net is designed to be mpv compatible, almost all mpv features are available
-because they are all contained in libmpv, this means the official
-[mpv manual](https://mpv.io/manual/master/) applies to mpv.net.
-
-mpv focuses on the usage of the command line and the terminal,
-mpv.net retains the ability to be used from the command line and
-the terminal and adds a modern Windows GUI on top of it.
+The player is based on the popular [mpv](https://mpv.io) media player.
+mpv.net is designed to be mpv compatible, almost all mpv features are available,
+this means the official [mpv manual](https://mpv.io/manual/master/) applies to mpv.net,
+differences are documented in this manual under [Differences compared to mpv](#differences-compared-to-mpv).
 
 
 Download
@@ -430,6 +427,11 @@ Enable this only when a developer asks for it. Default: no
 
 ### UI
 
+#### --language=\<value\>
+
+User interface display language.
+mpv.net must be restarted after a change.
+
 #### --dark-mode=\<value\>
 
 Enables a dark theme.
@@ -560,8 +562,12 @@ In fullscreen mode clicking the top right corner closes the player.
 Differences compared to mpv
 ---------------------------
 
-mpv.net is designed to work exactly like mpv, there are a few limitations:
+mpv.net is designed to work exactly like mpv, there are a few
+differences and limitations:
 
+The settings folder is named `mpv.net` instead of `mpv`:
+
+`C:\Users\username\AppData\Roaming\mpv.net`
 
 ### Window Limitations
 
@@ -1011,7 +1017,7 @@ Cycles the aspect ratio using the following command:
 [video-aspect property](https://mpv.io/manual/master/#command-interface-video-aspect)
 
 
-### Audio > Cycle/Next
+### Audio > Next
 
 This uses a mpv.net command that shows better info then the mpv preset
 and also has the advantage of not showing no audio.
@@ -1120,7 +1126,7 @@ Increases the subtitle font size using the following command:
 
 Increases the volume using the following command:
 
-`add volume 10`
+`add volume 2`
 
 [add command](https://mpv.io/manual/master/#command-interface-add-%3Cname%3E-[%3Cvalue%3E])
 
@@ -1131,7 +1137,7 @@ Increases the volume using the following command:
 
 Decreases the volume using the following command:
 
-`add volume -10`
+`add volume -2`
 
 [add command](https://mpv.io/manual/master/#command-interface-add-%3Cname%3E-[%3Cvalue%3E])
 

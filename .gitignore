@@ -302,7 +302,4 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-lang/cs-files.txt
-lang/template.pot
-lang/util.ps1
 *.7z
