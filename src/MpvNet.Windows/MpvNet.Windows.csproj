@@ -1,45 +1,46 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <OutputType>WinExe</OutputType>
-        <TargetFramework>net6.0-windows</TargetFramework>
-        <RootNamespace>MpvNet.Windows</RootNamespace>
-		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-        <AssemblyName>mpvnet</AssemblyName>
-        <UseWPF>true</UseWPF>
-        <UseWindowsForms>true</UseWindowsForms>
-        <ApplicationIcon>mpv-icon.ico</ApplicationIcon>
-        <Product>mpv.net</Product>
-        <AssemblyVersion>7.0.0.0</AssemblyVersion>
-        <FileVersion>7.0.0.0</FileVersion>
-		<Nullable>enable</Nullable>
-		<Platforms>AnyCPU;x64</Platforms>
-      <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    </PropertyGroup>
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <RootNamespace>MpvNet.Windows</RootNamespace>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AssemblyName>mpvnet</AssemblyName>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>mpv-icon.ico</ApplicationIcon>
+    <Product>mpv.net</Product>
+    <AssemblyVersion>7.0.0.0</AssemblyVersion>
+    <FileVersion>7.0.0.0</FileVersion>
+    <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;x64</Platforms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishReadyToRun>true</PublishReadyToRun>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <Content Include="mpv-icon.ico" />
-    </ItemGroup>
+  <ItemGroup>
+    <Content Include="mpv-icon.ico" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\MpvNet\MpvNet.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MpvNet\MpvNet.csproj" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <Page Update="WPF\Views\AboutWindow.xaml">
-        <Generator>MSBuild:Compile</Generator>
-        <XamlRuntime>Wpf</XamlRuntime>
-        <SubType>Designer</SubType>
-      </Page>
-    </ItemGroup>
+  <ItemGroup>
+    <Page Update="WPF\Views\AboutWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <XamlRuntime>Wpf</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
-      <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Misc\" />
-    </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Misc\" />
+  </ItemGroup>
 
 </Project>
