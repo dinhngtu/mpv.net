@@ -305,3 +305,4 @@ $RECYCLE.BIN/
 lang/cs-files.txt
 lang/template.pot
 lang/util.ps1
+*.7z
