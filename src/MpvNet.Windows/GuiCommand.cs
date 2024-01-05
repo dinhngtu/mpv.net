@@ -1,16 +1,20 @@
 ﻿
+using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Globalization;
 using System.Windows.Forms;
 using System.Windows.Interop;
 using System.Windows;
-using System.Globalization;
 
 using MpvNet.ExtensionMethod;
-using MpvNet.Help;
 using MpvNet.Windows.WinForms;
 using MpvNet.Windows.WPF.Views;
 using MpvNet.Windows.WPF;
 using MpvNet.Windows.WPF.MsgBox;
+using MpvNet.Windows.Help;
+using MpvNet.Help;
+using System;
 
 namespace MpvNet;
 
@@ -20,7 +24,6 @@ public class GuiCommand
 
     public event Action<float>? ScaleWindow;
     public event Action<string>? MoveWindow;
-    public event Action<double>? WindowScaleMpv;
     public event Action<float>? WindowScaleNet;
     public event Action? ShowMenu;
 
@@ -28,42 +31,53 @@ public class GuiCommand
 
     public Dictionary<string, Action<IList<string>>> Commands => _commands ??= new()
     {
-        ["show-about"] = args => ShowDialog(typeof(AboutWindow)),
-        ["show-conf-editor"] = args => ShowDialog(typeof(ConfWindow)),
-        ["show-input-editor"] = args => ShowDialog(typeof(InputWindow)),
-        ["show-audio-devices"] = args => Msg.ShowInfo(Player.GetPropertyOsdString("audio-device-list")),
-        ["show-profiles"] = args => Msg.ShowInfo(Player.GetProfiles()),
+        ["add-to-path"] = args => AddToPath(),
+        ["edit-conf-file"] = EditCongFile,
+        ["load-audio"] = LoadAudio,
         ["load-sub"] = LoadSubtitle,
+        ["move-window"] = args => MoveWindow?.Invoke(args[0]),
+        ["open-clipboard"] = OpenFromClipboard,
         ["open-files"] = OpenFiles,
         ["open-optical-media"] = Open_DVD_Or_BD_Folder,
-        ["load-audio"] = LoadAudio,
-        ["open-clipboard"] = OpenFromClipboard,
         ["reg-file-assoc"] = RegisterFileAssociations,
+        ["remove-from-path"] = args => RemoveFromPath(),
         ["scale-window"] = args => ScaleWindow?.Invoke(float.Parse(args[0], CultureInfo.InvariantCulture)),
-        ["show-media-info"] = ShowMediaInfo,
-        ["move-window"] = args => MoveWindow?.Invoke(args[0]),
-        ["window-scale"] = args => WindowScaleNet?.Invoke(float.Parse(args[0], CultureInfo.InvariantCulture)),
-        ["show-menu"] = args => ShowMenu?.Invoke(),
+        ["show-about"] = args => ShowDialog(typeof(AboutWindow)),
+        ["show-audio-devices"] = args => Msg.ShowInfo(Player.GetPropertyOsdString("audio-device-list")),
         ["show-bindings"] = args => ShowBindings(),
+        ["show-commands"] = args => ShowCommands(),
+        ["show-conf-editor"] = args => ShowDialog(typeof(ConfWindow)),
+        ["show-decoders"] = args => ShowDecoders(),
+        ["show-demuxers"] = args => ShowDemuxers(),
+        ["show-info"] = args => ShowMediaInfo(new[] { "osd" }),
+        ["show-input-editor"] = args => ShowDialog(typeof(InputWindow)),
+        ["show-keys"] = args => ShowKeys(),
+        ["show-media-info"] = ShowMediaInfo,
+        ["show-menu"] = args => ShowMenu?.Invoke(),
+        ["show-profiles"] = args => Msg.ShowInfo(Player.GetProfiles()),
+        ["show-properties"] = args => ShowProperties(),
+        ["show-protocols"] = args => ShowProtocols(),
+        ["window-scale"] = args => WindowScaleNet?.Invoke(float.Parse(args[0], CultureInfo.InvariantCulture)),
 
 
         // deprecated
-        ["show-info"] = args => ShowMediaInfo(new[] { "osd" }), // deprecated
-        ["quick-bookmark"] = args => QuickBookmark(), // deprecated
-        ["show-commands"] = args => ShowCommands(), // deprecated
-        ["show-history"] = args => ShowHistory(), // deprecated
+        ["show-recent"] = args => ShowRemoved(), // deprecated
         ["show-playlist"] = args => ShowPlaylist(), // deprecated
+        ["quick-bookmark"] = args => QuickBookmark(), // deprecated
+        ["show-history"] = args => ShowHistory(), // deprecated
         ["show-command-palette"] = args => ShowCommandPalette(), // deprecated
+        ["show-audio-tracks"] = args => ShowTracks(), // deprecated
+        ["show-subtitle-tracks"] = args => ShowTracks(), // deprecated
     };
 
-    public void ShowDialog(Type winType)
+    void ShowDialog(Type winType)
     {
         Window? win = Activator.CreateInstance(winType) as Window;
         new WindowInteropHelper(win).Owner = MainForm.Instance!.Handle;
         win?.ShowDialog();
     }
 
-    public void LoadSubtitle(IList<string> args)
+    void LoadSubtitle(IList<string> args)
     {
         using var dialog = new OpenFileDialog();
         string path = Player.GetPropertyString("path");
@@ -78,7 +92,7 @@ public class GuiCommand
                 Player.CommandV("sub-add", filename);
     }
 
-    public void OpenFiles(IList<string> args)
+    void OpenFiles(IList<string> args)
     {
         bool append = false;
 
@@ -92,7 +106,7 @@ public class GuiCommand
             Player.LoadFiles(dialog.FileNames, true, append);
     }
 
-    public void Open_DVD_Or_BD_Folder(IList<string> args)
+    void Open_DVD_Or_BD_Folder(IList<string> args)
     {
         var dialog = new FolderBrowserDialog();
 
@@ -100,12 +114,79 @@ public class GuiCommand
             Player.LoadDiskFolder(dialog.SelectedPath);
     }
 
-    public void OpenFromClipboard(IList<string> args)
+    void EditCongFile(IList<string> args)
     {
+        string file = Player.ConfigFolder + args[0];
+
+        if (File.Exists(file))
+            ProcessHelp.ShellExecute(WinApiHelp.GetAppPathForExtension("txt"), "\"" + file + "\"");
+    }
+
+    void ShowTextWithEditor(string name, string text)
+    {
+        string file = Path.Combine(Path.GetTempPath(), name + ".txt");
+        App.TempFiles.Add(file);
+        File.WriteAllText(file, BR + text.Trim() + BR);
+        ProcessHelp.ShellExecute(WinApiHelp.GetAppPathForExtension("txt"), "\"" + file + "\"");
+    }
+
+    void ShowCommands()
+    {
+        string json = Core.GetPropertyString("command-list");
+        var enumerator = JsonDocument.Parse(json).RootElement.EnumerateArray();
+        var commands = enumerator.OrderBy(it => it.GetProperty("name").GetString());
+        StringBuilder sb = new StringBuilder();
+
+        foreach (var cmd in commands)
+        {
+            sb.AppendLine();
+            sb.AppendLine(cmd.GetProperty("name").GetString());
+
+            foreach (var args in cmd.GetProperty("args").EnumerateArray())
+            {
+                string value = args.GetProperty("name").GetString() + " <" +
+                    args.GetProperty("type").GetString()!.ToLower() + ">";
+
+                if (args.GetProperty("optional").GetBoolean())
+                    value = "[" + value + "]";
+
+                sb.AppendLine("    " + value);
+            }
+        }
+
+        string header = BR +
+            "https://mpv.io/manual/master/#list-of-input-commands" + BR2 +
+            "https://github.com/stax76/mpv-scripts#command_palette" + BR;
+
+        ShowTextWithEditor("Input Commands", header + sb.ToString());
+    }
+
+    void ShowProperties() =>
+        ShowTextWithEditor("Properties", Core.GetPropertyString("property-list").Replace(",", BR));
+
+    void ShowKeys() =>
+        ShowTextWithEditor("Keys", Core.GetPropertyString("input-key-list").Replace(",", BR));
+
+    void ShowProtocols() =>
+        ShowTextWithEditor("Protocols", Core.GetPropertyString("protocol-list").Replace(",", BR));
+
+    void ShowDecoders() =>
+        ShowTextWithEditor("Decoders", Core.GetPropertyOsdString("decoder-list").Replace(",", BR));
+
+    void ShowDemuxers() =>
+        ShowTextWithEditor("Demuxers", Core.GetPropertyOsdString("demuxer-lavf-list").Replace(",", BR));
+
+    void OpenFromClipboard(IList<string> args)
+    {
+        bool append = args.Count == 1 && args[0] == "append";
+
         if (System.Windows.Forms.Clipboard.ContainsFileDropList())
         {
             string[] files = System.Windows.Forms.Clipboard.GetFileDropList().Cast<string>().ToArray();
-            Player.LoadFiles(files, false, false);
+            Player.LoadFiles(files, false, append);
+
+            if (append)
+                Player.CommandV("show-text", _("Files/URLs were added to the playlist"));
         }
         else
         {
@@ -118,15 +199,18 @@ public class GuiCommand
 
             if (files.Count == 0)
             {
-                Terminal.WriteError("The clipboard does not contain a valid URL or file.");
+                Terminal.WriteError(_("The clipboard does not contain a valid URL or file."));
                 return;
             }
 
-            Player.LoadFiles(files.ToArray(), false, false);
+            Player.LoadFiles(files.ToArray(), false, append);
+
+            if (append)
+                Player.CommandV("show-text", _("Files/URLs were added to the playlist"));
         }
     }
 
-    public void LoadAudio(IList<string> args)
+    void LoadAudio(IList<string> args)
     {
         using var dialog = new OpenFileDialog();
         string path = Player.GetPropertyString("path");
@@ -141,7 +225,7 @@ public class GuiCommand
                 Player.CommandV("audio-add", i);
     }
 
-    public void RegisterFileAssociations(IList<string> args)
+    void RegisterFileAssociations(IList<string> args)
     {
         string perceivedType = args[0];
         string[] extensions = Array.Empty<string>();
@@ -179,7 +263,7 @@ public class GuiCommand
         catch { }
     }
 
-    public void ShowMediaInfo(IList<string> args)
+    void ShowMediaInfo(IList<string> args)
     {
         if (Player.PlaylistPos == -1)
             return;
@@ -261,55 +345,87 @@ public class GuiCommand
         }
     }
 
-    public static string FormatTime(double value) => ((int)value).ToString("00");
+    string FormatTime(double value) => ((int)value).ToString("00");
 
-    public void ShowTextWithEditor(string name, string text)
+    void ShowBindings() => ShowTextWithEditor("Bindings", Player.UsedInputConfContent);
+
+    void AddToPath()
     {
-        string file = Path.Combine(Path.GetTempPath(), name + ".txt");
-        App.TempFiles.Add(file);
-        File.WriteAllText(file, BR + text.Trim() + BR);
-        ProcessHelp.ShellExecute(file);
+        string path = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User)!;
+
+        if (path.ToLower().Contains(Folder.Startup.TrimEnd(Path.DirectorySeparatorChar).ToLower()))
+        {
+            Msg.ShowWarning(_("mpv.net is already in the Path environment variable."));
+            return;
+        }
+
+        Environment.SetEnvironmentVariable("Path",
+            Folder.Startup.TrimEnd(Path.DirectorySeparatorChar) + ";" + path,
+            EnvironmentVariableTarget.User);
+
+        Msg.ShowInfo(_("mpv.net was successfully added to the Path environment variable."));
     }
 
-    public void ShowBindings()
+    void RemoveFromPath()
     {
-        string info = "# mpv.net might modify the input.conf content before it is passed to mpv." + BR +
-                      "# Below are the bindings as they were passed to mpv." + BR2;
+        string path = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User)!;
 
-        ShowTextWithEditor("Bindings", info + Player.UsedInputConfContent);
+        if (!path.Contains(Folder.Startup.TrimEnd(Path.DirectorySeparatorChar)))
+        {
+            Msg.ShowWarning(_("mpv.net was not found in the Path environment variable."));
+            return;
+        }
+
+        path = path.Replace(Folder.Startup.TrimEnd(Path.DirectorySeparatorChar), "");
+        path = path.Replace(";;", ";").Trim(';');
+
+        Environment.SetEnvironmentVariable("Path", path, EnvironmentVariableTarget.User);
+
+        Msg.ShowInfo(_("mpv.net was successfully removed from the Path environment variable."));
     }
-
-    //public void ShowCommandPalette()
-    //{
-    //    MainForm.Instance?.BeginInvoke(() => {
-    //        CommandPalette.Instance.SetItems(CommandPalette.GetItems());
-    //        MainForm.Instance.ShowCommandPalette();
-    //        CommandPalette.Instance.SelectFirst();
-    //    });
-    //}
 
     // deprecated
-    public void QuickBookmark() =>
-        Msg.ShowInfo("This feature was moved to a user script,\nwhich can be found here:\n\n" +
+    void ShowTracks() =>
+        Msg.ShowInfo(_("This feature was removed, but there are user scripts:") + BR2 +
+            "https://github.com/stax76/mpv-scripts#command_palette" + BR +
+            "https://github.com/stax76/mpv-scripts#search_menu" + BR +
+            "https://github.com/tomasklaen/uosc");
+
+    // deprecated
+    void ShowPlaylist() =>
+        Msg.ShowInfo(_("This feature was removed, but there are user scripts:") + BR2 +
+            "https://github.com/stax76/mpv-scripts#command_palette" + BR +
+            "https://github.com/stax76/mpv-scripts#search_menu" + BR +
+            "https://github.com/tomasklaen/uosc" + BR +
+            "https://github.com/jonniek/mpv-playlistmanager");
+
+    // deprecated
+    void ShowCommandPalette() =>
+        Msg.ShowInfo(_("This feature was removed, but there are user scripts:") + BR2 +
+            "https://github.com/stax76/mpv-scripts#command_palette" + BR +
+            "https://github.com/stax76/mpv-scripts#search_menu" + BR +
+            "https://github.com/tomasklaen/uosc");
+
+    // deprecated
+    void QuickBookmark() =>
+        Msg.ShowInfo(_("This feature was removed, but there are user scripts:") + BR2 +
             "https://github.com/stax76/mpv-scripts/blob/main/misc.lua");
 
     // deprecated
-    public void ShowCommands() =>
-        Msg.ShowInfo("This feature was moved to a user script,\nwhich can be found here:\n\n" +
-            "https://github.com/stax76/mpv-scripts#command_palette");
-
-    // deprecated
-    public void ShowHistory() =>
-        Msg.ShowInfo("This feature was moved to a user script,\nwhich can be found here:\n\n" +
+    void ShowHistory() =>
+        Msg.ShowInfo(_("This feature was removed, but there are user scripts:") + BR2 +
             "https://github.com/stax76/mpv-scripts/blob/main/history.lua");
 
     // deprecated
-    public void ShowPlaylist() =>
-        Msg.ShowInfo("This feature was moved to a user script,\nwhich can be found here:\n\n" +
-            "https://github.com/stax76/mpv-scripts#command_palette");
-
-    // deprecated
-    public void ShowCommandPalette() =>
-        Msg.ShowInfo("This feature was moved to a user script,\nwhich can be found here:\n\n" +
-            "https://github.com/stax76/mpv-scripts#command_palette");
+    void ShowRemoved() => Msg.ShowInfo(_("This feature was removed."));
 }
+
+
+//public void ShowCommandPalette()
+//{
+//    MainForm.Instance?.BeginInvoke(() => {
+//        CommandPalette.Instance.SetItems(CommandPalette.GetItems());
+//        MainForm.Instance.ShowCommandPalette();
+//        CommandPalette.Instance.SelectFirst();
+//    });
+//}

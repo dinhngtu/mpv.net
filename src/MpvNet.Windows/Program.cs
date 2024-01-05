@@ -1,5 +1,4 @@
 ﻿
-using System.Globalization;
 using System.Windows.Forms;
 using System.Threading;
 
@@ -42,8 +41,12 @@ static class Program
             Theme.Init();
             Mutex mutex = new Mutex(true, StringHelp.GetMD5Hash(App.ConfPath), out bool isFirst);
 
-            if (Control.ModifierKeys.HasFlag(Keys.Shift))
+            if (Control.ModifierKeys == Keys.Shift ||
+                App.CommandLine.Contains("--process-instance=multi") ||
+                App.CommandLine.Contains("--o="))
+            {
                 App.ProcessInstance = "multi";
+            }
 
             if ((App.ProcessInstance == "single" || App.ProcessInstance == "queue") && !isFirst)
             {
@@ -93,7 +96,20 @@ static class Program
                 return;
             }
 
-            Application.Run(new WinForms.MainForm());
+            if (ProcessCommandLineArguments())
+                Environment.GetCommandLineArgs();
+            else if (App.CommandLine.Contains("--o="))
+            {
+                App.AutoLoadFolder = false;
+                Player.Init(IntPtr.Zero);
+                Player.ProcessCommandLineArgsPost();
+                Player.ProcessCommandLineFiles();
+                Player.SetPropertyString("idle", "no");
+                Player.EventLoop();
+                Player.Destroy();
+            }
+            else
+                Application.Run(new WinForms.MainForm());
 
             if (App.IsTerminalAttached)
                 WinApi.FreeConsole();
@@ -104,5 +120,49 @@ static class Program
         {
             Terminal.WriteError(ex);
         }
+    }
+
+    static bool ProcessCommandLineArguments()
+    {
+        foreach (string arg in Environment.GetCommandLineArgs().Skip(1))
+        {
+            if (arg == "--profile=help")
+            {
+                Player.Init(IntPtr.Zero, false);
+                Console.WriteLine(Player.GetProfiles());
+                Player.Destroy();
+                return true;
+            }
+            else if (arg == "--vd=help" || arg == "--ad=help")
+            {
+                Player.Init(IntPtr.Zero, false);
+                Console.WriteLine(Player.GetDecoders());
+                Player.Destroy();
+                return true;
+            }
+            else if (arg == "--audio-device=help")
+            {
+                Player.Init(IntPtr.Zero, false);
+                Console.WriteLine(Player.GetPropertyOsdString("audio-device-list"));
+                Player.Destroy();
+                return true;
+            }
+            else if (arg == "--input-keylist")
+            {
+                Player.Init(IntPtr.Zero, false);
+                Console.WriteLine(Player.GetPropertyString("input-key-list").Replace(",", BR));
+                Player.Destroy();
+                return true;
+            }
+            else if (arg == "--version")
+            {
+                Player.Init(IntPtr.Zero, false);
+                Console.WriteLine(AppClass.About);
+                Player.Destroy();
+                return true;
+            }
+        }
+
+        return false;
     }
 }

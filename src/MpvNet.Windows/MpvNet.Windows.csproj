@@ -1,26 +1,34 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
-    <RootNamespace>MpvNet.Windows</RootNamespace>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <AssemblyName>mpvnet</AssemblyName>
-    <UseWPF>true</UseWPF>
-    <UseWindowsForms>true</UseWindowsForms>
-    <ApplicationIcon>mpv-icon.ico</ApplicationIcon>
-    <Product>mpv.net</Product>
-    <AssemblyVersion>7.0.0.0</AssemblyVersion>
-    <FileVersion>7.0.0.0</FileVersion>
-    <Nullable>enable</Nullable>
-    <Platforms>AnyCPU;x64</Platforms>
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net6.0-windows</TargetFramework>
+        <RootNamespace>MpvNet.Windows</RootNamespace>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<PublishSingleFile>true</PublishSingleFile>
+        <AssemblyName>mpvnet</AssemblyName>
+        <UseWPF>true</UseWPF>
+        <UseWindowsForms>true</UseWindowsForms>
+        <ApplicationIcon>mpv-icon.ico</ApplicationIcon>
+        <Product>mpv.net</Product>
+        <FileVersion>7.0.0.6</FileVersion>
+        <AssemblyVersion>7.0.0.6</AssemblyVersion>
+		<InformationalVersion>7.0.0.6</InformationalVersion>
+		<Nullable>enable</Nullable>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishReadyToRun>true</PublishReadyToRun>
-  </PropertyGroup>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <Content Include="mpv-icon.ico" />
-  </ItemGroup>
+    <ItemGroup>
+      <Compile Remove="Misc\**" />
+      <EmbeddedResource Remove="Misc\**" />
+      <None Remove="Misc\**" />
+      <Page Remove="Misc\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="mpv-icon.ico" />
+    </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\MpvNet\MpvNet.csproj" />
@@ -39,9 +47,5 @@
       <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
       <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
     </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Misc\" />
-  </ItemGroup>
 
 </Project>
