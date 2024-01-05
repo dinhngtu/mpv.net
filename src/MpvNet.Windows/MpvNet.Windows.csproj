@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
@@ -15,7 +15,8 @@
         <AssemblyVersion>7.0.0.6</AssemblyVersion>
 		<InformationalVersion>7.0.0.6</InformationalVersion>
 		<Nullable>enable</Nullable>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <Platforms>AnyCPU;x64</Platforms>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <PublishReadyToRun>true</PublishReadyToRun>
     </PropertyGroup>
 
